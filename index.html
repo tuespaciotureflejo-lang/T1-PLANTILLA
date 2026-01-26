@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantilla Work-Book Editable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #214359 0%, #163447 100%);
+        }
+
+        .loader {
+            border: 4px solid #f3f3f4;
+            border-top: 4px solid #d2ae6d;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .download-card {
+            transition: all 0.3s ease;
+        }
+
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <nav class="bg-white/10 backdrop-blur-md shadow-lg p-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="https://tuespaciotureflejo.com" class="flex items-center gap-3">
+                <img src="T1-Plantilla WB.png" alt="Logo" class="h-12 bg-white p-1 rounded-lg">
+                <div>
+                    <h1 class="text-lg font-bold text-white">Plantilla Work-Book</h1>
+                    <p class="text-xs text-white/70">Editable en PowerPoint y Canva</p>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="flex-1 flex flex-col items-center justify-center">
+        <div class="loader mb-4"></div>
+        <p class="text-white font-medium">Verificando acceso...</p>
+    </div>
+
+    <!-- Access Denied State -->
+    <div id="deniedState" class="hidden flex-1 flex flex-col items-center justify-center p-6">
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="lock" class="w-10 h-10 text-red-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-[#214359] mb-2">Acceso Restringido</h2>
+            <p class="text-gray-600 mb-6">Este contenido es exclusivo para alumnos que han adquirido la Plantilla
+                Editable.</p>
+            <a href="https://go.hotmart.com/P103921439O?dp=1"
+                class="inline-block bg-[#214359] hover:bg-[#163447] text-white px-8 py-3 rounded-full font-semibold transition-all">
+                Adquirir Plantilla
+            </a>
+        </div>
+    </div>
+
+    <!-- Download Options -->
+    <div id="downloadContainer" class="hidden flex-1 flex flex-col items-center justify-center p-6">
+        <div class="max-w-4xl w-full">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-white mb-3">¡Tu Plantilla está Lista!</h2>
+                <p class="text-white/80 text-lg">Elige cómo quieres personalizarla</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- PowerPoint Option -->
+                <div class="download-card bg-white rounded-2xl shadow-xl p-8">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="presentation" class="w-8 h-8 text-orange-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#214359] mb-2">PowerPoint</h3>
+                    <p class="text-gray-600 mb-6">Descarga el archivo .PPTX y edítalo en PowerPoint, Google Slides o
+                        cualquier editor compatible.</p>
+
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            Edición offline
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            Compatible con PC y Mac
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            30 páginas editables
+                        </li>
+                    </ul>
+
+                    <button onclick="downloadPPTX()"
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Descargar .PPTX
+                    </button>
+                </div>
+
+                <!-- Canva Option -->
+                <div class="download-card bg-white rounded-2xl shadow-xl p-8">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="palette" class="w-8 h-8 text-purple-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#214359] mb-2">Canva</h3>
+                    <p class="text-gray-600 mb-6">Abre la plantilla directamente en Canva y edítala online con
+                        herramientas profesionales y gratis.</p>
+
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            Edición online
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            Herramientas profesionales
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-gray-700">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                            Gratis y fácil de usar
+                        </li>
+                    </ul>
+
+                    <a href="https://www.canva.com/design/DAG-qf-3C-w/ale8uLHdu4xb3fA7M5-v2w/view?utm_content=DAG-qf-3C-w&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview"
+                        target="_blank"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="external-link" class="w-5 h-5"></i>
+                        Abrir en Canva
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="mt-8 bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+                <p class="text-white/90 text-sm">
+                    <i data-lucide="info" class="w-4 h-4 inline mr-2"></i>
+                    Puedes usar ambas opciones. Descarga el archivo y guárdalo, o edita directamente en Canva.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEF-l4KMVqPtEBPtDjJhJxzl3Ib5RKJR0",
+            authDomain: "t1-radiografiadetuespacio.firebaseapp.com",
+            projectId: "t1-radiografiadetuespacio",
+            storageBucket: "t1-radiografiadetuespacio.firebasestorage.app",
+            messagingSenderId: "1007913803653",
+            appId: "1:1007913803653:web:c2b1c9e8f9f6a0e8e8e8e8"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Check access
+        async function checkAccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email') || localStorage.getItem('t1_user_email');
+
+            if (!email) {
+                showDenied();
+                return;
+            }
+
+            try {
+                const userDoc = await db.collection('t1_alumnos').doc(email.toLowerCase().trim()).get();
+
+                if (!userDoc.exists) {
+                    showDenied();
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const hasAccess = userData.ACCESOS?.plantilla_editable === true;
+
+                if (hasAccess) {
+                    showDownloads();
+                } else {
+                    showDenied();
+                }
+            } catch (error) {
+                console.error('Error checking access:', error);
+                showDenied();
+            }
+        }
+
+        function showDenied() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('deniedState').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function showDownloads() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('downloadContainer').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function downloadPPTX() {
+            const link = document.createElement('a');
+            link.href = '/T1-PLANTILLA-WORK-BOOK.pptx';
+            link.download = 'T1-PLANTILLA-WORK-BOOK.pptx';
+            link.click();
+        }
+
+        // Initialize
+        checkAccess();
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
