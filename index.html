@@ -69,18 +69,31 @@
     </div>
 
     <!-- Access Denied State -->
-    <div id="deniedState" class="hidden flex-1 flex flex-col items-center justify-center p-6">
-        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
-            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="lock" class="w-10 h-10 text-red-500"></i>
+    <div id="deniedState"
+        class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-[#214359]/95 backdrop-blur-md fixed inset-0 z-50 transition-all duration-300">
+        <div
+            class="bg-white rounded-[2rem] shadow-2xl p-8 md:p-12 max-w-md w-full text-center relative border border-white/10 ring-1 ring-white/20 animate-in zoom-in duration-300">
+            <button onclick="closeWindow()"
+                class="absolute top-4 right-4 bg-gray-100 hover:bg-[#5d9064] text-gray-400 hover:text-white rounded-full p-2 transition-all shadow-sm z-50">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-20 h-20 bg-[#5d9064]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="lock" class="w-10 h-10 text-[#5d9064]"></i>
             </div>
-            <h2 class="text-2xl font-bold text-[#214359] mb-2">Acceso Restringido</h2>
-            <p class="text-gray-600 mb-6">Este contenido es exclusivo para alumnos que han adquirido la Plantilla
-                Editable.</p>
-            <a href="https://go.hotmart.com/P103921439O?dp=1"
-                class="inline-block bg-[#214359] hover:bg-[#163447] text-white px-8 py-3 rounded-full font-semibold transition-all">
-                Adquirir Plantilla
-            </a>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#214359] mb-3 font-['Poppins']">Acceso Restringido</h2>
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">Este contenido es exclusivo para alumnos que han
+                adquirido la
+                Plantilla Editable.</p>
+            <div class="flex flex-col gap-3">
+                <a href="https://go.hotmart.com/P103921439O?dp=1" target="_blank"
+                    class="inline-flex items-center justify-center gap-2 bg-[#5d9064] hover:bg-[#4a7250] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                    Adquirir Plantilla <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+                <button onclick="closeWindow()"
+                    class="w-full px-4 py-4 rounded-xl border-2 border-transparent hover:border-[#214359]/10 text-[#214359]/60 hover:text-[#214359] hover:bg-gray-50 transition-all text-xs font-bold uppercase tracking-widest">
+                    Volver a Mi Panel
+                </button>
+            </div>
         </div>
     </div>
 
@@ -217,6 +230,12 @@
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('deniedState').classList.remove('hidden');
             lucide.createIcons();
+        }
+
+        function closeWindow() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email') || localStorage.getItem('t1_user_email') || '';
+            window.location.href = `https://tuespaciotureflejo.com/?email=${encodeURIComponent(email)}&view=DASHBOARD_T1`;
         }
 
         function showDownloads() {
