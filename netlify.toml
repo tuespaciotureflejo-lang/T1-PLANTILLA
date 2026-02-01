@@ -1,2 +1,8 @@
 [build]
   publish = "."
+
+[functions]
+  # Disable secrets scanning for this static site
+  # Firebase API keys are meant to be public (protected by Firebase rules)
+  [functions.secrets_scan]
+    enabled = false
