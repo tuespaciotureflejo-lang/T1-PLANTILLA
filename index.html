@@ -211,17 +211,24 @@
             }
 
             email = email.toLowerCase().trim();
+            localStorage.setItem('t1_user_email', email); // Persist session on this subdomain
 
             try {
-                const userDoc = await db.collection('t1_alumnos').doc(email).get();
+                // More robust check: query by email field instead of doc ID
+                const querySnapshot = await db.collection('t1_alumnos')
+                    .where("DATOS_PERSONALES.correo", "==", email)
+                    .get();
 
-                if (!userDoc.exists) {
+                if (querySnapshot.empty) {
                     showDenied();
                     return;
                 }
 
-                const userData = userDoc.data();
-                const hasAccess = userData.ACCESOS?.plantilla_work_book === true;
+                const userData = querySnapshot.docs[0].data();
+                const accesos = userData.ACCESOS || {};
+
+                // Allow access if they have the specific key OR the flash master pack
+                const hasAccess = accesos.plantilla_work_book === true || accesos.paquete_flash === true || accesos.flash === true;
 
                 if (hasAccess) {
                     showDownloads();
