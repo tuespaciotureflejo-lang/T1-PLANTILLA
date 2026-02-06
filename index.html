@@ -244,16 +244,21 @@
                 const productId = getParam('product_id') || getParam('item');
 
                 if (email && (transaction || productId)) {
-                    fetch('https://tuespaciotureflejo.com/.netlify/functions/sync-user', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            email,
-                            name,
-                            product_id: productId,
-                            transaction,
-                            source: 'hotmart'
-                        })
-                    }).then(() => console.log("User synced successfully")).catch(e => console.error("Sync error:", e));
+                    try {
+                        await fetch('https://tuespaciotureflejo.com/.netlify/functions/sync-user', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                email,
+                                name,
+                                product_id: productId,
+                                transaction,
+                                source: 'hotmart'
+                            })
+                        });
+                        console.log("User synced successfully");
+                    } catch (e) {
+                        console.error("Sync error:", e);
+                    }
                 }
 
                 // Direct document lookup by email (ID)
