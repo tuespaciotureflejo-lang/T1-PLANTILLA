@@ -233,12 +233,12 @@
                 return null;
             };
 
+            // Attempt to get email from URL first
             let emailRaw = getParam('email') ||
                 getParam('subscriber_email') ||
                 getParam('hotmart_email') ||
                 getParam('email_venda') ||
-                getParam('email_alumno') ||
-                localStorage.getItem('t1_user_email');
+                getParam('email_alumno');
 
             // Sanitize email
             const sanitizeEmail = (em) => {
@@ -258,8 +258,8 @@
             const name = getParam('name') || getParam('nombre');
             if (name) localStorage.setItem('t1_user_name', name);
 
-            // Validación mejorada para detectar placeholders y emails inválidos
-            const isInvalidEmail = !email ||
+            // Validation to detect placeholders and invalid emails
+            const isInvalidUrlEmail = !email ||
                 email.includes('{') ||
                 email.includes('[') ||
                 email.includes('$') ||
@@ -268,10 +268,17 @@
                 !email.includes('@') ||
                 !email.includes('.');
 
-            if (isInvalidEmail) {
-                console.log('Email inválido o ausente:', emailRaw, '→ mostrando login manual');
-                showManualLogin();
-                return;
+            if (isInvalidUrlEmail) {
+                // Try LocalStorage if URL failed
+                const localEmail = localStorage.getItem('t1_user_email');
+                if (localEmail && localEmail.includes('@')) {
+                    email = localEmail;
+                    console.log('Using email from LocalStorage:', email);
+                } else {
+                    console.log('Email inválido en URL y no hay copia local válida:', emailRaw, '→ mostrando login manual');
+                    showManualLogin();
+                    return;
+                }
             }
 
             email = email.toLowerCase().trim();
