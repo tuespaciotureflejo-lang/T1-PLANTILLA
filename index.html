@@ -203,7 +203,25 @@
         // Check access
         async function checkAccess() {
             const urlParams = new URLSearchParams(window.location.search);
-            let email = urlParams.get('email') || localStorage.getItem('t1_user_email');
+
+            // Robust parameter gathering
+            const getParam = (name) => {
+                const lowerName = name.toLowerCase();
+                for (const [key, value] of urlParams.entries()) {
+                    if (key.toLowerCase() === lowerName) return value;
+                }
+                return null;
+            };
+
+            let email = getParam('email') ||
+                getParam('subscriber_email') ||
+                getParam('hotmart_email') ||
+                getParam('email_venda') ||
+                getParam('email_alumno') ||
+                localStorage.getItem('t1_user_email');
+
+            const name = getParam('name') || getParam('nombre');
+            if (name) localStorage.setItem('t1_user_name', name);
 
             if (!email || email.includes('{') || email.includes('[')) {
                 showDenied();
@@ -217,16 +235,18 @@
                 // Direct document lookup by email (ID)
                 const docSnap = await db.collection('t1_alumnos').doc(email).get();
 
-                if (!docSnap.exists) {
-                    showDenied();
-                    return;
+                // Normalizer
+                const normalize = (val) => val === true || val === 'true';
+
+                let hasAccess = false;
+                if (docSnap.exists) {
+                    const userData = docSnap.data();
+                    const accesos = userData.ACCESOS || {};
+                    hasAccess = normalize(accesos.plantilla_work_book) || normalize(accesos.plantilla_editable);
                 }
 
-                const userData = docSnap.data();
-                const accesos = userData.ACCESOS || {};
-
-                // Only specific access OR the unique admin
-                const hasAccess = accesos.plantilla_work_book === true || accesos.plantilla_editable === true || email === "tuespaciotureflejo@gmail.com";
+                // Global bypass for admin
+                if (email === "tuespaciotureflejo@gmail.com") hasAccess = true;
 
                 if (hasAccess) {
                     showDownloads();
@@ -246,9 +266,9 @@
         }
 
         function closeWindow() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const email = urlParams.get('email') || localStorage.getItem('t1_user_email') || '';
-            window.location.href = `https://tuespaciotureflejo.com/?email=${encodeURIComponent(email)}&view=DASHBOARD_T1`;
+            const email = localStorage.getItem('t1_user_email') || '';
+            const name = localStorage.getItem('t1_user_name') || '';
+            window.location.href = `https://tuespaciotureflejo.com/?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&view=DASHBOARD_T1`;
         }
 
         function showDownloads() {
