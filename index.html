@@ -214,21 +214,19 @@
             localStorage.setItem('t1_user_email', email); // Persist session on this subdomain
 
             try {
-                // More robust check: query by email field instead of doc ID
-                const querySnapshot = await db.collection('t1_alumnos')
-                    .where("DATOS_PERSONALES.correo", "==", email)
-                    .get();
+                // Direct document lookup by email (ID)
+                const docSnap = await db.collection('t1_alumnos').doc(email).get();
 
-                if (querySnapshot.empty) {
+                if (!docSnap.exists) {
                     showDenied();
                     return;
                 }
 
-                const userData = querySnapshot.docs[0].data();
+                const userData = docSnap.data();
                 const accesos = userData.ACCESOS || {};
 
                 // Only specific access OR the unique admin
-                const hasAccess = accesos.plantilla_work_book === true || email === "tuespaciotureflejo@gmail.com";
+                const hasAccess = accesos.plantilla_work_book === true || accesos.plantilla_editable === true || email === "tuespaciotureflejo@gmail.com";
 
                 if (hasAccess) {
                     showDownloads();
