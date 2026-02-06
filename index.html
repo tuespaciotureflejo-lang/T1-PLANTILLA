@@ -54,10 +54,19 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <a href="https://tuespaciotureflejo.com" class="flex items-center gap-3">
                 <img src="T1-Plantilla WB.png" alt="Logo" class="h-10 bg-white p-1 rounded-lg">
-                <h1 class="text-sm font-bold text-white uppercase tracking-tighter">Workbook Template</h1>
+                <h1 class="text-sm font-bold text-white uppercase tracking-tighter hidden md:block">Workbook Template
+                </h1>
             </a>
-            <div id="userNameBanner" class="text-white text-xs font-semibold opacity-0 transition-opacity duration-500">
-                Hola, <span id="displayUserName"></span>
+            <div class="flex items-center gap-4">
+                <div id="userNameBanner"
+                    class="text-white text-xs font-semibold opacity-0 transition-opacity duration-500 hidden md:block">
+                    Hola, <span id="displayUserName"></span>
+                </div>
+                <button onclick="closeWindow()"
+                    class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Panel</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -142,59 +151,67 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 md:gap-8 mb-12">
-        <!-- PowerPoint Card -->
-        <div
-            class="download-card bg-white/5 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/10 text-center flex flex-col items-center">
-            <div class="w-12 h-12 md:w-16 md:h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-4">
-                <i data-lucide="presentation" class="w-6 h-6 md:w-8 md:h-8 text-orange-500"></i>
-            </div>
-            <h3 class="text-white font-bold mb-1 text-sm md:text-lg">PowerPoint</h3>
-            <p class="text-white/40 text-[10px] md:text-xs mb-6 uppercase tracking-widest font-bold">Editable local</p>
+    <!-- PDF Display (Main Content) -->
+    <div id="downloadContainer" class="hidden max-w-7xl mx-auto px-4 w-full">
 
-            <button onclick="downloadPPTX()"
-                class="w-12 h-12 md:w-16 md:h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-full flex items-center justify-center transition-all shadow-xl hover:scale-110 active:scale-95"
-                title="Descargar PPTX">
-                <i data-lucide="download" class="w-6 h-6"></i>
-            </button>
+        <!-- PDF Viewer & Cover -->
+        <div class="flex flex-col md:flex-row gap-8 items-start justify-center mb-12">
+
+            <!-- Cover Image Side -->
+            <div class="w-full md:w-1/3 flex flex-col items-center">
+                <div
+                    class="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/10 shadow-2xl relative group">
+                    <img src="PLANTILLA WORK-BOOK PORTADA.webp" alt="Portada Plantilla"
+                        class="rounded-xl shadow-lg w-full max-w-[300px] md:max-w-full">
+                    <div
+                        class="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center pointer-events-none">
+                        <span
+                            class="text-white font-bold uppercase tracking-widest text-sm bg-black/50 px-4 py-2 rounded-lg backdrop-blur-md">Portada
+                            Oficial</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-col gap-3 w-full max-w-[300px]">
+                    <h3 class="text-white font-bold text-center mb-2">Descargar Plantilla</h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="downloadPPTX()"
+                            class="bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all shadow-lg hover:-translate-y-1">
+                            <i data-lucide="presentation" class="w-5 h-5"></i>
+                            <span class="text-[10px] uppercase font-bold">PowerPoint</span>
+                        </button>
+
+                        <a href="https://www.canva.com/design/DAG-qf-3C-w/ale8uLHdu4xb3fA7M5-v2w/view?utm_content=DAG-qf-3C-w&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview"
+                            target="_blank"
+                            class="bg-[#4fc4c9] hover:bg-[#3daeb3] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all shadow-lg hover:-translate-y-1">
+                            <i data-lucide="palette" class="w-5 h-5"></i>
+                            <span class="text-[10px] uppercase font-bold">Canva</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Viewer Side -->
+            <div class="w-full md:w-2/3">
+                <div id="pdfViewer"
+                    class="bg-white/5 backdrop-blur-sm rounded-3xl p-1 border border-white/10 shadow-2xl overflow-hidden h-[600px] md:h-[800px]">
+                    <div class="bg-black/20 p-3 flex justify-between items-center rounded-t-[20px] mb-1">
+                        <h3 class="text-white/80 text-xs font-bold uppercase tracking-widest ml-4">Vista Previa del
+                            Documento</h3>
+                        <button onclick="downloadPDF()"
+                            class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase">
+                            <i data-lucide="download" class="w-4 h-4"></i> Descargar PDF
+                        </button>
+                    </div>
+                    <iframe src="T1-PLANTILLA-WORK-BOOK.pdf" width="100%" height="100%"
+                        class="rounded-b-2xl border-none"></iframe>
+                </div>
+            </div>
         </div>
 
-        <!-- Canva Card -->
-        <div
-            class="download-card bg-white/5 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/10 text-center flex flex-col items-center">
-            <div class="w-12 h-12 md:w-16 md:h-16 bg-[#4fc4c9]/10 rounded-2xl flex items-center justify-center mb-4">
-                <i data-lucide="palette" class="w-6 h-6 md:w-8 md:h-8 text-[#4fc4c9]"></i>
-            </div>
-            <h3 class="text-white font-bold mb-1 text-sm md:text-lg">Canva</h3>
-            <p class="text-white/40 text-[10px] md:text-xs mb-6 uppercase tracking-widest font-bold">Editable online</p>
-
-            <a href="https://www.canva.com/design/DAG-qf-3C-w/ale8uLHdu4xb3fA7M5-v2w/view?utm_content=DAG-qf-3C-w&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview"
-                target="_blank"
-                class="w-12 h-12 md:w-16 md:h-16 bg-[#4fc4c9] hover:bg-[#3daeb3] text-white rounded-full flex items-center justify-center transition-all shadow-xl hover:scale-110 active:scale-95"
-                title="Abrir en Canva">
-                <i data-lucide="external-link" class="w-6 h-6"></i>
-            </a>
-        </div>
     </div>
 
-    <!-- PDF Preview (Now at the end) -->
-    <div id="pdfViewer"
-        class="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10 shadow-2xl overflow-hidden max-w-2xl mx-auto mb-12">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <p class="text-white/40 text-[10px] uppercase font-bold tracking-[0.2em]">Previsualización</p>
-                <h3 class="text-white font-bold text-xl leading-none">Guía de la Plantilla</h3>
-            </div>
-            <button onclick="downloadPDF()"
-                class="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all" title="Descargar PDF">
-                <i data-lucide="download" class="w-5 h-5"></i>
-            </button>
-        </div>
-        <div id="pdfContainer"
-            class="rounded-xl overflow-hidden flex flex-col items-center gap-4 max-h-[500px] overflow-y-auto custom-scrollbar bg-black/20">
-            <!-- PDF pages will load here -->
-        </div>
-    </div>
+
 
     <!-- Info Box -->
     <div class="mt-8 bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
@@ -427,7 +444,7 @@
                 document.getElementById('userNameBanner').classList.remove('opacity-0');
             }
 
-            loadPlantillaPreview(); // Load the preview
+            // No need to load anything extra, everything is static now
             lucide.createIcons();
         }
 
