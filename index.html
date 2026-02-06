@@ -83,6 +83,36 @@
         <p class="text-white font-medium">Verificando acceso...</p>
     </div>
 
+    <!-- Login State (Manual Entry) -->
+    <div id="loginState"
+        class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-[#214359]/95 backdrop-blur-md fixed inset-0 z-50 transition-all duration-300">
+        <div
+            class="bg-white rounded-[2rem] shadow-2xl p-8 md:p-12 max-w-md w-full text-center relative border border-white/10 ring-1 ring-white/20 animate-in zoom-in duration-300">
+            <div class="w-20 h-20 bg-[#d2ae6d]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="mail" class="w-10 h-10 text-[#d2ae6d]"></i>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#214359] mb-3 font-['Poppins']">Ingresa tu Email</h2>
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">
+                Para acceder a la Plantilla, por favor ingresa el <strong>email con el que realizaste la compra</strong>
+                en
+                Hotmart:
+            </p>
+            <input type="email" id="manualEmail" placeholder="tu@correo.com"
+                class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-[#d2ae6d] focus:outline-none mb-2" />
+            <p class="text-xs text-gray-400 mb-4 text-left">
+                💡 <em>Si vienes del PDF de bienvenida, ingresa aquí tu email real de compra</em>
+            </p>
+            <button onclick="verifyManualEmail()"
+                class="w-full bg-[#d2ae6d] hover:bg-[#b59253] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mb-3">
+                Verificar Acceso
+            </button>
+            <button onclick="closeWindow()"
+                class="w-full px-4 py-4 rounded-xl border-2 border-transparent hover:border-[#214359]/10 text-[#214359]/60 hover:text-[#214359] hover:bg-gray-50 transition-all text-xs font-bold uppercase tracking-widest">
+                Volver al Panel
+            </button>
+        </div>
+    </div>
+
     <!-- Access Denied State -->
     <div id="deniedState"
         class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-[#214359]/95 backdrop-blur-md fixed inset-0 z-50 transition-all duration-300">
@@ -203,18 +233,44 @@
                 return null;
             };
 
-            let email = getParam('email') ||
+            let emailRaw = getParam('email') ||
                 getParam('subscriber_email') ||
                 getParam('hotmart_email') ||
                 getParam('email_venda') ||
                 getParam('email_alumno') ||
                 localStorage.getItem('t1_user_email');
 
+            // Sanitize email
+            const sanitizeEmail = (em) => {
+                if (!em) return null;
+                let clean = em.trim();
+                // If it contains "email=", split it
+                if (clean.includes('email=')) {
+                    clean = clean.split('email=').pop() || '';
+                }
+                // Remove leading '?' or '&' if any remain
+                clean = clean.replace(/^[?&]+/, '');
+                return clean.toLowerCase().trim();
+            };
+
+            let email = sanitizeEmail(emailRaw);
+
             const name = getParam('name') || getParam('nombre');
             if (name) localStorage.setItem('t1_user_name', name);
 
-            if (!email || email.includes('{') || email.includes('[')) {
-                showDenied();
+            // Validación mejorada para detectar placeholders y emails inválidos
+            const isInvalidEmail = !email ||
+                email.includes('{') ||
+                email.includes('[') ||
+                email.includes('$') ||
+                email === 'email' ||
+                email.length < 5 ||
+                !email.includes('@') ||
+                !email.includes('.');
+
+            if (isInvalidEmail) {
+                console.log('Email inválido o ausente:', emailRaw, '→ mostrando login manual');
+                showManualLogin();
                 return;
             }
 
@@ -273,8 +329,75 @@
             }
         }
 
+        function showManualLogin() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('loginState').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function verifyManualEmail() {
+            const emailInput = document.getElementById('manualEmail');
+            const email = emailInput.value.trim().toLowerCase();
+
+            // Validación básica
+            if (!email || !email.includes('@') || !email.includes('.') || email.length < 5) {
+                alert('Por favor ingresa un email válido (ejemplo: tu@correo.com)');
+                return;
+            }
+
+            // Cambiar botón a estado de loading
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<div class="loader mx-auto" style="width:20px;height:20px;border-width:2px;border-color:#fff;border-top-color:transparent"></div>';
+
+            try {
+                // Guardar en localStorage
+                localStorage.setItem('t1_user_email', email);
+
+                // Verificar acceso en Firebase
+                const docSnap = await db.collection('t1_alumnos').doc(email).get();
+                const normalize = (val) => val === true || val === 'true';
+                let hasAccess = false;
+
+                if (docSnap.exists) {
+                    const userData = docSnap.data();
+                    const accesos = userData.ACCESOS || {};
+                    // STRICT ACCESS: Only Workbook keys
+                    hasAccess = normalize(accesos.plantilla_work_book) ||
+                        normalize(accesos.plantilla_editable);
+
+                    // Guardar nombre si existe
+                    if (userData.alumno) {
+                        localStorage.setItem('t1_user_name', userData.alumno);
+                    }
+                }
+
+                // Admin siempre tiene acceso
+                if (email === "tuespaciotureflejo@gmail.com") hasAccess = true;
+
+                if (hasAccess) {
+                    // Ocultar login y mostrar contenido
+                    document.getElementById('loginState').classList.add('hidden');
+                    showDownloads();
+                } else {
+                    // Mostrar mensaje de acceso denegado
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                    document.getElementById('loginState').classList.add('hidden');
+                    showDenied();
+                }
+            } catch (error) {
+                console.error('Error verificando email:', error);
+                button.disabled = false;
+                button.innerHTML = originalText;
+                alert('Error al verificar el acceso. Por favor intenta nuevamente.');
+            }
+        }
+
         function showDenied() {
             document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('loginState').classList.add('hidden'); // Asegurar que el login se oculte
             document.getElementById('deniedState').classList.remove('hidden');
             lucide.createIcons();
         }
