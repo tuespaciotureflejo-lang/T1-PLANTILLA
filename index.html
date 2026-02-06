@@ -11,10 +11,27 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #214359 0%, #163447 100%);
+        }
+
+        .pdf-page-wrapper {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pdf-page-wrapper canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
 
         .loader {
@@ -63,9 +80,9 @@
                     Hola, <span id="displayUserName"></span>
                 </div>
                 <button onclick="closeWindow()"
-                    class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Panel</span>
+                    class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all hover:scale-110 shadow-lg border border-white/10"
+                    title="Volver al Panel">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
             </div>
         </div>
@@ -198,13 +215,20 @@
                     <div class="bg-black/20 p-3 flex justify-between items-center rounded-t-[20px] mb-1">
                         <h3 class="text-white/80 text-xs font-bold uppercase tracking-widest ml-4">Vista Previa del
                             Documento</h3>
-                        <button onclick="downloadPDF()"
-                            class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase">
-                            <i data-lucide="download" class="w-4 h-4"></i> Descargar PDF
-                        </button>
+                        <div class="flex gap-2">
+                            <span id="pageCount"
+                                class="text-white/50 text-xs font-mono self-center mr-2">Cargando...</span>
+                            <button onclick="downloadPDF()"
+                                class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase">
+                                <i data-lucide="download" class="w-4 h-4"></i> Descargar PDF
+                            </button>
+                        </div>
                     </div>
-                    <iframe src="T1-PLANTILLA-WORK-BOOK.pdf" width="100%" height="100%"
-                        class="rounded-b-2xl border-none"></iframe>
+                    <!-- PDF.js Container -->
+                    <div id="pdfPagesContainer"
+                        class="p-4 bg-slate-900/50 overflow-y-auto custom-scrollbar h-full rounded-b-2xl flex flex-col items-center">
+                        <div class="loader opacity-50 my-10" id="pdfLoader"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -236,6 +260,8 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        let pdfDoc = null;
 
         // Check access
         async function checkAccess() {
@@ -444,8 +470,68 @@
                 document.getElementById('userNameBanner').classList.remove('opacity-0');
             }
 
-            // No need to load anything extra, everything is static now
+            // Start PDF Load
+            loadPlantillaPDF();
+
             lucide.createIcons();
+        }
+
+        async function loadPlantillaPDF() {
+            const container = document.getElementById('pdfPagesContainer');
+            const loader = document.getElementById('pdfLoader');
+
+            try {
+                const loadingTask = pdfjsLib.getDocument('T1-PLANTILLA-WORK-BOOK.pdf');
+                pdfDoc = await loadingTask.promise;
+
+                document.getElementById('pageCount').textContent = `${pdfDoc.numPages} Páginas`;
+                loader.remove(); // Remove loader
+
+                for (let i = 1; i <= pdfDoc.numPages; i++) {
+                    // Render pages sequentially to avoid freezing UI
+                    await renderPage(i, container);
+                }
+            } catch (error) {
+                console.error("Error loading PDF:", error);
+                container.innerHTML = `
+                    <div class="text-white/50 flex flex-col items-center justify-center h-full p-8 text-center">
+                        <i data-lucide="file-warning" class="w-12 h-12 mb-4 opacity-50"></i>
+                        <p class="mb-4">No se pudo cargar la vista previa.</p>
+                        <button onclick="downloadPDF()" class="bg-[#d2ae6d] text-white px-6 py-2 rounded-full font-bold">
+                            Descargar Archivo
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        async function renderPage(num, container) {
+            try {
+                const page = await pdfDoc.getPage(num);
+                // Adjust scale based on container width if possible, or fixed
+                const viewport = page.getViewport({ scale: 1.0 });
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'pdf-page-wrapper';
+                // wrapper.style.maxWidth = '100%'; 
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                wrapper.appendChild(canvas);
+                container.appendChild(wrapper);
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                await page.render(renderContext).promise;
+            } catch (e) {
+                console.error("Error rendering page " + num, e);
+            }
         }
 
         function downloadPPTX() {
