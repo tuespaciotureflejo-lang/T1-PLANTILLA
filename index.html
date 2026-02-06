@@ -181,10 +181,9 @@
     </div>
 
     <script>
-        // Firebase Config
+        // Firebase Config (Sincronizada y Protegida)
         const firebaseConfig = {
-            // Obfuscated to avoid Netlify secrets scan false positives
-            apiKey: "AIzaSyBEF-l4K" + "MVqPtEBPtDjJhJxzl3Ib5RKJR0",
+            apiKey: "AIzaSyCGOlQOuU8C1-5Ou47_FAQn5Lh9vy3ygGE",
             authDomain: "t1-radiografiadetuespacio.firebaseapp.com",
             projectId: "t1-radiografiadetuespacio",
             storageBucket: "t1-radiografiadetuespacio.firebasestorage.app",
@@ -198,15 +197,17 @@
         // Check access
         async function checkAccess() {
             const urlParams = new URLSearchParams(window.location.search);
-            const email = urlParams.get('email') || localStorage.getItem('t1_user_email');
+            let email = urlParams.get('email') || localStorage.getItem('t1_user_email');
 
-            if (!email) {
+            if (!email || email.includes('{') || email.includes('[')) {
                 showDenied();
                 return;
             }
 
+            email = email.toLowerCase().trim();
+
             try {
-                const userDoc = await db.collection('t1_alumnos').doc(email.toLowerCase().trim()).get();
+                const userDoc = await db.collection('t1_alumnos').doc(email).get();
 
                 if (!userDoc.exists) {
                     showDenied();
