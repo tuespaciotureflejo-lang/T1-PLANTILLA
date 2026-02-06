@@ -232,6 +232,23 @@
             localStorage.setItem('t1_user_email', email); // Persist session on this subdomain
 
             try {
+                // --- AUTO-SYNC (Ensures user exists and has access if coming from Hotmart) ---
+                const transaction = getParam('transaction') || getParam('hottok');
+                const productId = getParam('product_id') || getParam('item');
+
+                if (email && (transaction || productId)) {
+                    fetch('https://tuespaciotureflejo.com/.netlify/functions/sync-user', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email,
+                            name,
+                            product_id: productId,
+                            transaction,
+                            source: 'hotmart'
+                        })
+                    }).then(() => console.log("User synced successfully")).catch(e => console.error("Sync error:", e));
+                }
+
                 // Direct document lookup by email (ID)
                 const docSnap = await db.collection('t1_alumnos').doc(email).get();
 
@@ -242,7 +259,9 @@
                 if (docSnap.exists) {
                     const userData = docSnap.data();
                     const accesos = userData.ACCESOS || {};
-                    hasAccess = normalize(accesos.plantilla_work_book) || normalize(accesos.plantilla_editable);
+                    // STRICT ACCESS: Only Workbook keys (admin is handled below)
+                    hasAccess = normalize(accesos.plantilla_work_book) ||
+                        normalize(accesos.plantilla_editable);
                 }
 
                 // Global bypass for admin
