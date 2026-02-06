@@ -227,8 +227,8 @@
                 const userData = querySnapshot.docs[0].data();
                 const accesos = userData.ACCESOS || {};
 
-                // Allow access if they have the specific key OR the flash master pack
-                const hasAccess = accesos.plantilla_work_book === true || accesos.paquete_flash === true || accesos.flash === true;
+                // Only specific access OR the unique admin
+                const hasAccess = accesos.plantilla_work_book === true || email === "tuespaciotureflejo@gmail.com";
 
                 if (hasAccess) {
                     showDownloads();
